@@ -2,11 +2,12 @@
 #include<math.h>
 #include<stdlib.h>
 #include<time.h>
+#define N 500      // Dimensão da matriz
 
 void add(int **a, int **b, int size, int **c);
 void sub(int **a, int **b, int size, int **c);
 void multiply(int **c, int **d, int size, int size2, int **new);
-void init_matrix_random(int **matrix, int size, int actualSize);
+void init_matrix_random(int **matrix, int size);
 void print_matrix(char* title, int **matrix, int size);
 
 void multiply(int **c, int **d, int size, int size2, int **new){
@@ -16,7 +17,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
     else {
         int i, j;
         int nsize = size/2;
-        
+
         // Alocar submatrizes
         int **c11 = malloc(nsize * sizeof(int *));
         for(i=0; i<nsize; i++){
@@ -78,7 +79,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
         for(i=0; i<nsize; i++){
             m7[i] = malloc(nsize * sizeof(int));
         }
-        
+
         // Dividir matrizes em quadrantes
         for(i=0; i<nsize; i++){
             for(j=0; j<nsize; j++){
@@ -92,7 +93,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
                 d22[i][j] = d[i+nsize][j+nsize];
             }
         }
-        
+
         int **temp1 = malloc(nsize * sizeof(int *));
         for(i=0; i<nsize; i++){
             temp1[i] = malloc(nsize*sizeof(int));
@@ -216,7 +217,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
 
         // C12 = M3 + M5
         add(m3, m5, nsize, te4);
-        
+
         // C21 = M2 + M4
         add(m2, m4, nsize, te5);
 
@@ -226,7 +227,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
         add(te6, te7, nsize, te8);
 
         // Combinar quadrantes na matriz resultado
-        int a=0, b=0, c_idx=0, d_idx=0, e=0;
+        int a=0, c_idx=0, d_idx=0, e=0;
         int nsize2 = 2*nsize;
         for(i=0; i<nsize2; i++){
             for(j=0; j<nsize2; j++){
@@ -248,7 +249,7 @@ void multiply(int **c, int **d, int size, int size2, int **new){
                 }
             }
         }
-        
+
         // Liberar memória
         free(m1); free(m2); free(m3); free(m4);
         free(m5); free(m6); free(m7);
@@ -259,25 +260,24 @@ void multiply(int **c, int **d, int size, int size2, int **new){
     }
 }
 
-void main(){
-    int size, p, i, j;
-    
+int main(){
+    int p, i;
+
     // Tamanho fixo da matriz (deve ser potência de 2)
-    int tempS = 8; // Altere para 4, 8, 16, 32, etc.
-    size = tempS;
-    
+    int size = N ; // Tamanho da matriz
+
     // Garantir que o tamanho é potência de 2
     if((size & (size-1)) != 0){
         p = log(size)/log(2);
         size = pow(2, p+1);
     }
-    
+
     printf("=== MULTIPLICAÇÃO DE MATRIZES - ALGORITMO DE STRASSEN ===\n");
-    printf("Tamanho das matrizes: %d x %d\n\n", tempS, tempS);
-    
+    printf("Dimensão das matrizes: %d \n\n", size);
+
     // Inicializar gerador de números aleatórios
     srand(time(NULL));
-    
+
     // Alocar matrizes
     int **a = malloc(size * sizeof(int *));
     for(i=0; i<size; i++){
@@ -287,40 +287,35 @@ void main(){
     for(i=0; i<size; i++){
         b[i] = malloc(size*sizeof(int));
     }
-    
-    // Inicializar matrizes com valores aleatórios
-    init_matrix_random(a, size, tempS);
-    init_matrix_random(b, size, tempS);
-    
-    // Imprimir matrizes de entrada
-    print_matrix("Matriz A:", a, tempS);
+
+    // Iniciar matrizes com valores aleatórios
+    init_matrix_random(a, size);
+    init_matrix_random(b, size);
+
+    // print_matrix("Matriz A:", a, size);
     printf("\n");
-    print_matrix("Matriz B:", b, tempS);
+    // print_matrix("Matriz B:", b, size);
     printf("\n");
-    
+
     // Alocar matriz resultado
     int **new = malloc(size * sizeof(int *));
     for(i=0; i<size; i++){
         new[i] = malloc(size*sizeof(int));
     }
-    
+
     // Medir tempo de execução
     clock_t start = clock();
     multiply(a, b, size, size, new);
     clock_t end = clock();
-    
-    // Imprimir matriz resultado
-    if(tempS < size)
-        size = tempS;
-    
-   // print_matrix("Matriz C (Produto A x B):", new, size);
-    
+
+    //print_matrix("Matriz C (Produto A x B):", new, size);
+
     // Exibir tempo de execução
     double cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
     printf("\n=== TEMPO DE EXECUÇÃO ===\n");
     printf("Tempo: %.6f segundos\n", cpu_time_used);
     printf("Tempo: %.2f milissegundos\n", cpu_time_used * 1000);
-    
+
     // Liberar memória
     free(a);
     free(b);
@@ -345,22 +340,18 @@ void sub(int **a, int **b, int size, int **c){
     }
 }
 
-void init_matrix_random(int **matrix, int size, int actualSize){
+void init_matrix_random(int **matrix, int size){
     int i, j;
-    for(i=0; i<size; i++){
-        for(j=0; j<size; j++){
-            if(i >= actualSize || j >= actualSize){
-                matrix[i][j] = 0; // Preencher com zeros para padding
-            } else {
+    for(i=0; i<size; i++)
+        for(j=0; j<size; j++)
                 matrix[i][j] = rand() % 10; // Valores entre 0 e 9
-            }
-        }
-    }
 }
 
 void print_matrix(char* title, int **matrix, int size){
     int i, j;
     printf("%s\n", title);
+    if (size > 32)
+        size = 32;
     for(i=0; i<size; i++){
         for(j=0; j<size; j++){
             printf("%4d ", matrix[i][j]);
